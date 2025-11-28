@@ -120,3 +120,18 @@
     @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1;
   }
 }
+
+@media print {
+  header,
+  button,
+  nav,
+  footer {
+    display: none !important;
+  }
+
+  .gradient-text {
+    background: none !important;
+    -webkit-text-fill-color: black !important;
+    color: black !important;
+  }
+}
