@@ -1,11 +1,16 @@
+import { notFound } from "next/navigation";
+
 type Props = {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 };
 
 export default async function Page({ params }: Props) {
   const { slug } = await params;
-  console.log("SLUG", slug);
-  const { default: Post } = await import(`@/posts/${slug}.md`);
 
-  return <Post />;
+  try {
+    const { default: Post } = await import(`@/posts/${slug}.md`);
+    return <Post />;
+  } catch (error) {
+    notFound();
+  }
 }
