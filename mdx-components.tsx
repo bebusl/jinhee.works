@@ -1,11 +1,29 @@
 import type { MDXComponents } from "mdx/types";
 
-const components: MDXComponents = {};
+const components: MDXComponents = {
+  a: ({ href, children, ...props }) => {
+    const isExternal = href?.startsWith("http");
+    return (
+      <a
+        href={href}
+        {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        {...props}
+      >
+        {children}
+      </a>
+    );
+  },
+  img: ({ src, alt, ...props }) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt ?? ""}
+      className="max-w-full rounded-lg"
+      {...props}
+    />
+  ),
+};
 
-/**
- * @TODO MDX컴포넌트 스타일링 (참조 : s/mdx#using-custom-styles-and-components)
- * @link https://nextjs.org/docs/app/api-reference/file-conventions/mdx-components
- */
 export function useMDXComponents(): MDXComponents {
   return components;
 }

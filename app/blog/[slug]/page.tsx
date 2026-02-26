@@ -4,9 +4,10 @@ import fs from "fs";
 import matter from "gray-matter";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
+import { Badge } from "@/components/ui/badge";
 
 type Props = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 const POSTS_DIR = path.join(process.cwd(), "posts");
@@ -21,9 +22,11 @@ export async function generateStaticParams() {
 }
 
 export default async function Page({ params }: Props) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = decodeURIComponent(rawSlug);
 
-  // .md 또는 .mdx 파일 찾기
+  console.log(slug);
+
   let filePath = path.join(POSTS_DIR, `${slug}.md`);
   if (!fs.existsSync(filePath)) {
     filePath = path.join(POSTS_DIR, `${slug}.mdx`);
@@ -34,20 +37,36 @@ export default async function Page({ params }: Props) {
   }
 
   const fileContent = fs.readFileSync(filePath, "utf-8");
+  console.log(fileContent);
+
   const { content, data } = matter(fileContent);
 
   return (
-    <div className="prose">
-      {/* 필요하면 frontmatter 데이터 사용 가능: data.title, data.author 등 */}
-      <MDXRemote
-        source={content}
-        options={{
-          mdxOptions: {
-            remarkPlugins: [remarkGfm],
-            rehypePlugins: [],
-          },
-        }}
-      />
+    <div className="max-w-3xl mx-auto">
+      <header className="mb-8 pb-8 border-b border-border">
+        <h1 className="text-3xl font-bold text-foreground mb-4">
+          {data.title}
+        </h1>
+        <div className="flex items-center gap-3 flex-wrap text-sm text-muted-foreground">
+          {data.date && <span>{String(data.date).slice(0, 10)}</span>}
+          {data.updated_at && (
+            <span>업데이트: {String(data.updated_at).slice(0, 10)}</span>
+          )}
+          {data.category && <Badge variant="secondary">{data.category}</Badge>}
+          {data.featured && <span className="text-yellow-500">⭐</span>}
+        </div>
+      </header>
+      <article className="prose dark:prose-invert max-w-none">
+        <MDXRemote
+          source={content}
+          options={{
+            mdxOptions: {
+              remarkPlugins: [remarkGfm],
+              rehypePlugins: [],
+            },
+          }}
+        />
+      </article>
     </div>
   );
 }
