@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import path from "path";
 import fs from "fs";
 import matter from "gray-matter";
-import { MDXRemote } from "next-mdx-remote/rsc";
+import { compileMDX } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import { Badge } from "@/components/ui/badge";
 
@@ -41,6 +41,24 @@ export default async function Page({ params }: Props) {
 
   const { content, data } = matter(fileContent);
 
+  let mdxContent: React.ReactElement | null = null;
+  let mdxError: string | null = null;
+
+  try {
+    const result = await compileMDX({
+      source: content,
+      options: {
+        mdxOptions: {
+          remarkPlugins: [remarkGfm],
+          rehypePlugins: [],
+        },
+      },
+    });
+    mdxContent = result.content;
+  } catch (err) {
+    mdxError = err instanceof Error ? err.message : String(err);
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
       <header className="mb-8 pb-8 border-b border-border">
@@ -57,15 +75,14 @@ export default async function Page({ params }: Props) {
         </div>
       </header>
       <article className="prose dark:prose-invert max-w-none">
-        <MDXRemote
-          source={content}
-          options={{
-            mdxOptions: {
-              remarkPlugins: [remarkGfm],
-              rehypePlugins: [],
-            },
-          }}
-        />
+        {mdxError ? (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+            <p className="font-semibold mb-1">콘텐츠를 불러올 수 없습니다.</p>
+            <pre className="whitespace-pre-wrap text-xs opacity-75">{mdxError}</pre>
+          </div>
+        ) : (
+          mdxContent
+        )}
       </article>
     </div>
   );
