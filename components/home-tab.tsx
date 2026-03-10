@@ -1,12 +1,7 @@
+import Link from "next/link";
 import { Github } from "lucide-react";
 
-type Tab = "home" | "resume" | "blog" | "projects";
-
-interface Props {
-  setActiveTab: (tab: Tab) => void;
-}
-
-export default function HomeTab({ setActiveTab }: Props) {
+export default function HomeTab() {
   return (
     <section className="min-h-[88vh] flex flex-col justify-center relative py-12">
       <div className="relative z-10 max-w-4xl space-y-8">
@@ -50,8 +45,8 @@ export default function HomeTab({ setActiveTab }: Props) {
 
         {/* CTA buttons */}
         <div className="fade-up-4 flex flex-wrap gap-4">
-          <button
-            onClick={() => setActiveTab("projects")}
+          <Link
+            href="/projects"
             className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-linear-to-r from-primary to-accent text-white font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
           >
             프로젝트 보기
@@ -67,7 +62,7 @@ export default function HomeTab({ setActiveTab }: Props) {
             >
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
-          </button>
+          </Link>
           <a
             href="https://github.com"
             target="_blank"

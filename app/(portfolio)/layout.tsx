@@ -1,21 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import Header from "@/components/header";
-import HomeTab from "@/components/home-tab";
-import ResumeTab from "@/components/resume-tab";
-import BlogTab from "@/components/blog-tab";
-import ProjectsTab from "@/components/projects-tab";
-import type { PostMeta } from "@/lib/posts";
 
-export type Tab = "home" | "resume" | "blog" | "projects";
-
-interface Props {
-  posts: PostMeta[];
-}
-
-export default function PortfolioClient({ posts }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>("home");
+export default function PortfolioLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [isDark, setIsDark] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -43,18 +33,18 @@ export default function PortfolioClient({ posts }: Props) {
     updateTheme(newIsDark);
   };
 
+  const isHome = pathname === "/";
+
   if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-background relative">
-      {/* Subtle dot grid background */}
       <div
         className="fixed inset-0 dot-grid-bg opacity-60 pointer-events-none"
         aria-hidden="true"
       />
 
-      {/* Full-page gradient orbs — home tab only */}
-      {activeTab === "home" && (
+      {isHome && (
         <>
           <div
             className="fixed -top-48 -left-48 w-[650px] h-[650px] rounded-full bg-primary/10 blur-[110px] float-orb pointer-events-none"
@@ -67,13 +57,10 @@ export default function PortfolioClient({ posts }: Props) {
         </>
       )}
 
-      <Header activeTab={activeTab} setActiveTab={setActiveTab} isDark={isDark} toggleTheme={toggleTheme} />
+      <Header isDark={isDark} toggleTheme={toggleTheme} />
 
       <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-        {activeTab === "home"     && <HomeTab setActiveTab={setActiveTab} />}
-        {activeTab === "resume"   && <ResumeTab />}
-        {activeTab === "blog"     && <BlogTab posts={posts} />}
-        {activeTab === "projects" && <ProjectsTab />}
+        {children}
       </main>
     </div>
   );
