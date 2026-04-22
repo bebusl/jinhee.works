@@ -21,22 +21,25 @@ export default function BlogTab({ posts }: Props) {
       : posts.filter((p) => p.category === activeCategory);
 
   return (
-    <div className="space-y-8 mt-10">
+    <div className="space-y-8 mt-6 md:mt-8">
       {/* Category filter */}
-      <div className="flex gap-2 flex-wrap">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat ?? "전체")}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer border-0 ${
-              (cat ?? "전체") === activeCategory
-                ? "bg-linear-to-r from-gray-500 to-gray-700 text-white shadow-md shadow-gray-300/25"
-                : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+      <div className="flex gap-2">
+        {categories.map((cat) => {
+          const isActive = (cat ?? "전체") === activeCategory;
+          return (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat ?? "전체")}
+              className={`px-1 py-2 min-w-13 text-sm font-medium transition-all duration-200 cursor-pointer  -mb-px border-b-3 ${
+                isActive
+                  ? "border-neutral-800 text-foreground font-semibold"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-neutral-300"
+              }`}
+            >
+              {cat}
+            </button>
+          );
+        })}
       </div>
 
       {/* Posts grid */}
