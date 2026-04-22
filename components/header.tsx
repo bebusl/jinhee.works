@@ -13,9 +13,8 @@ export default function Header({ isDark, toggleTheme }: HeaderProps) {
   const pathname = usePathname();
 
   const tabs = [
-    { id: "home",     label: "홈",          path: "/" },
-    { id: "resume",   label: "이력서",      path: "/resume" },
-    { id: "blog",     label: "블로그",      path: "/blog" },
+    { id: "blog", label: "블로그", path: "/blog" },
+    { id: "resume", label: "이력서", path: "/resume" },
     { id: "projects", label: "미니프로젝트", path: "/projects" },
   ];
 
@@ -27,15 +26,16 @@ export default function Header({ isDark, toggleTheme }: HeaderProps) {
       <div className="max-w-7xl mx-auto">
         <div className="bg-background/85 backdrop-blur-xl border border-border/70 rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/30 px-4 sm:px-5 py-3">
           <div className="flex items-center justify-between gap-4">
-
             {/* Logo */}
             <Link
-              href="/"
+              href="/blog"
               className="flex items-center gap-2.5 cursor-pointer shrink-0"
-              aria-label="홈으로 이동"
+              aria-label="블로그로 이동"
             >
               <div className="w-8 h-8 rounded-lg bg-linear-to-br from-primary to-accent flex items-center justify-center shadow-md shadow-primary/25 shrink-0">
-                <span className="text-white font-bold text-sm select-none">J</span>
+                <span className="text-white font-bold text-sm select-none">
+                  J
+                </span>
               </div>
               <span className="text-base font-bold gradient-text select-none hidden sm:block">
                 Jinhee.Works

@@ -1,5 +1,5 @@
-import HomeTab from "@/components/home-tab";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <HomeTab />;
+  redirect("/blog");
 }

@@ -21,25 +21,16 @@ export default function BlogTab({ posts }: Props) {
       : posts.filter((p) => p.category === activeCategory);
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-3xl sm:text-4xl font-bold mb-3 gradient-text">
-          블로그
-        </h2>
-        <p className="text-foreground/60 text-lg">
-          기술과 개발에 대해 배운 것들을 기록합니다.
-        </p>
-      </div>
-
+    <div className="space-y-8 mt-10">
       {/* Category filter */}
       <div className="flex gap-2 flex-wrap">
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat ?? "전체")}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer border-0 ${
               (cat ?? "전체") === activeCategory
-                ? "bg-linear-to-r from-primary to-accent text-white shadow-md shadow-primary/25"
+                ? "bg-linear-to-r from-gray-500 to-gray-700 text-white shadow-md shadow-gray-300/25"
                 : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent"
             }`}
           >
