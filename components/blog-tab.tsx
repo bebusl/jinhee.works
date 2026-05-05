@@ -22,24 +22,26 @@ export default function BlogTab({ posts }: Props) {
 
   return (
     <div className="space-y-8 mt-6 md:mt-8">
-      {/* Category filter */}
       <div className="flex gap-2">
-        {categories.map((cat) => {
-          const isActive = (cat ?? "전체") === activeCategory;
-          return (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat ?? "전체")}
-              className={`px-1 py-2 min-w-13 text-sm font-medium transition-all duration-200 cursor-pointer  -mb-px border-b-3 ${
-                isActive
-                  ? "border-neutral-800 text-foreground font-semibold"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-neutral-300"
-              }`}
-            >
-              {cat}
-            </button>
-          );
-        })}
+        <div className="flex flex-wrap gap-3">
+          {categories.map((category) => {
+            const isActive = (category ?? "전체") === activeCategory;
+
+            return (
+              <button
+                key={`${category}-filter-button`}
+                onClick={() => setActiveCategory(category ?? "전체")}
+                className={`px-6 py-3 border-2 border-foreground transition-colors tracking-wider cursor-pointer font-semibold ${
+                  isActive
+                    ? "bg-foreground text-background"
+                    : "bg-background text-foreground hover:bg-foreground hover:text-background"
+                }`}
+              >
+                {category}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Posts grid */}
@@ -51,53 +53,55 @@ export default function BlogTab({ posts }: Props) {
             </p>
           </div>
         ) : (
-          filtered.map((post) => (
+          filtered.map((post, index) => (
             <Link key={post.slug} href={`/blog/${post.slug}`}>
-              <article className="group flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-200/40 hover:bg-gray-200/70 border border-border/60 hover:border-border rounded-2xl px-7 py-6 transition-all duration-200 cursor-pointer">
-                <div className="flex-1 min-w-0 space-y-2.5">
-                  {/* Meta row */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {post.category && (
-                      <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-foreground/8 text-foreground/60 border border-border/60">
-                        {post.category}
-                      </span>
-                    )}
-                    {post.featured && (
-                      <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/15">
-                        Featured
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="text-lg sm:text-xl font-bold text-foreground/90 group-hover:text-foreground transition-colors duration-200 leading-snug">
-                    {post.title}
-                  </h3>
-                </div>
-
-                {/* Date + arrow */}
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-xs text-muted-foreground font-medium tabular-nums">
-                    {post.date}
-                  </span>
-                  <svg
-                    className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground/60 group-hover:translate-x-1 transition-all duration-200"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </article>
+              <PostCard post={post} index={index} />
             </Link>
           ))
         )}
       </div>
     </div>
+  );
+}
+
+function PostCard({ post, index }: { post: PostMeta; index: number }) {
+  return (
+    <article
+      className={`grid grid-cols-1 md:grid-cols-3 gap-0 border-2 border-foreground bg-background hover:shadow-[12px_12px_0_0_currentColor] transition-shadow cursor-pointer ${
+        index % 2 === 0 ? "" : "md:grid-flow-dense"
+      }`}
+    >
+      <div
+        className={`aspect-4/3 overflow-hidden border-foreground ${index % 2 === 0 ? "md:border-r-8" : "md:col-start-3 md:border-l-8"}`}
+      >
+        <img
+          src={post.thumbnail ?? "/placeholder-post.avif"}
+          alt=""
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div
+        className={`col-span-2 p-8 flex flex-col justify-between ${index % 2 === 0 ? "" : "md:col-start-1"}`}
+      >
+        <div>
+          <div className="flex gap-3 mb-4">
+            {post.category && (
+              <span className="px-3 py-1 border-4 border-foreground bg-foreground text-background text-[0.75rem] tracking-widest">
+                {post.category}
+              </span>
+            )}
+          </div>
+          <h2 className="mb-4 text-[1.5rem] leading-tight">{post.title}</h2>
+          <p className="text-muted-foreground leading-relaxed">
+            {post.excerpt ?? "요약본이 없어요💧"}
+          </p>
+        </div>
+        <div className="mt-6 pt-6 border-t-4 border-foreground">
+          <time className="tracking-wider text-muted-foreground">
+            {post.date}
+          </time>
+        </div>
+      </div>
+    </article>
   );
 }
