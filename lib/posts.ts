@@ -12,6 +12,8 @@ export interface PostMeta {
   category?: string;
   featured?: boolean;
   notion_id?: string;
+  excerpt?: string;
+  thumbnail?: string;
 }
 
 export function getPostsMetadata(): PostMeta[] {
@@ -30,9 +32,13 @@ export function getPostsMetadata(): PostMeta[] {
       slug,
       title: String(data.title ?? slug),
       date: String(data.date ?? "").slice(0, 10),
-      ...(data.updated_at ? { updated_at: String(data.updated_at).slice(0, 10) } : {}),
+      ...(data.updated_at
+        ? { updated_at: String(data.updated_at).slice(0, 10) }
+        : {}),
       ...(data.category ? { category: String(data.category) } : {}),
-      ...(data.featured !== undefined ? { featured: Boolean(data.featured) } : {}),
+      ...(data.featured !== undefined
+        ? { featured: Boolean(data.featured) }
+        : {}),
       ...(data.notion_id ? { notion_id: String(data.notion_id) } : {}),
     };
   });

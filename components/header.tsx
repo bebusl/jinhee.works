@@ -15,70 +15,50 @@ export default function Header({ isDark, toggleTheme }: HeaderProps) {
   const tabs = [
     { id: "blog", label: "블로그", path: "/blog" },
     { id: "resume", label: "이력서", path: "/resume" },
-    { id: "projects", label: "미니프로젝트", path: "/projects" },
+    // { id: "projects", label: "미니프로젝트", path: "/projects" },
   ];
 
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname.startsWith(path);
 
   return (
-    <header className="sticky top-3 z-50 px-3 sm:px-4 lg:px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-background/85 backdrop-blur-xl border border-border/70 rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/30 px-4 sm:px-5 py-3">
-          <div className="flex items-center justify-between gap-4">
-            {/* Logo */}
-            <Link
-              href="/blog"
-              className="flex items-center gap-2.5 cursor-pointer shrink-0"
-              aria-label="블로그로 이동"
-            >
-              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-primary to-accent flex items-center justify-center shadow-md shadow-primary/25 shrink-0">
-                <span className="text-white font-bold text-sm select-none">
-                  J
-                </span>
-              </div>
-              <span className="text-base font-bold gradient-text select-none hidden sm:block">
-                Jinhee.Works
-              </span>
-            </Link>
-
-            {/* Nav + Theme toggle */}
-            <div className="flex items-center gap-1 sm:gap-2">
-              <nav className="flex gap-0.5" aria-label="주 메뉴">
-                {tabs.map((tab) => {
-                  const active = isActive(tab.path);
-                  return (
-                    <Link
-                      key={tab.id}
-                      href={tab.path}
-                      className={`px-3 sm:px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
-                        active
-                          ? "text-foreground font-semibold"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      aria-current={active ? "page" : undefined}
-                    >
-                      {tab.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              <div className="w-px h-5 bg-border mx-1" aria-hidden="true" />
-
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all duration-200 cursor-pointer"
-                aria-label={isDark ? "라이트 모드로 전환" : "다크 모드로 전환"}
-              >
-                {isDark ? (
-                  <Sun className="w-4 h-4" aria-hidden="true" />
-                ) : (
-                  <Moon className="w-4 h-4" aria-hidden="true" />
-                )}
-              </button>
-            </div>
+    <header className="border-b-8 border-foreground bg-background relative">
+      <div className="max-w-7xl mx-auto px-8 py-8">
+        <div className="flex items-start justify-between mb-8">
+          <div>
+            <h1 className="text-[2rem] font-semibold leading-none mb-2 tracking-tighter">
+              JINHEE.WORKS
+            </h1>
           </div>
+          <button
+            onClick={toggleTheme}
+            className="p-3  hover:bg-foreground hover:text-background transition-colors mt-2"
+            aria-label="Toggle theme"
+          >
+            {isDark ? <Sun size={28} /> : <Moon size={28} />}
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between mb-8">
+          <nav className="flex gap-6">
+            {tabs.map((tab) => {
+              const active = isActive(tab.path);
+              return (
+                <Link
+                  key={tab.id}
+                  href={tab.path}
+                  className={`border-b-8 pb-2 tracking-wider transition-colors cursor-pointer font-semibold ${
+                    active
+                      ? "text-foreground border-foreground"
+                      : "text-muted-foreground border-transparent "
+                  }`}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {tab.label}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
       </div>
     </header>
