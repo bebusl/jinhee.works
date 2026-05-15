@@ -9,15 +9,19 @@ import { Client } from "@notionhq/client";
 import { NotionToMarkdown } from "notion-to-md";
 import slugify from "slugify";
 import matter from "gray-matter";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { fileURLToPath } from "url";
-import https from "https";
-import http from "http";
+import https from "node:https";
+import http from "node:http";
+
+const isProd = process.env.NODE_ENV === "production";
+
+console.log("IS PRODUCTION?", isProd);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
-const POSTS_DIR = path.join(ROOT, "posts");
+const POSTS_DIR = path.join(ROOT, isProd ? "posts" : "posts/local");
 const IMAGES_DIR = path.join(ROOT, "public", "images");
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
@@ -45,7 +49,9 @@ async function downloadFile(url, destPath) {
         if (res.statusCode === 301 || res.statusCode === 302) {
           file.close();
           fs.unlinkSync(destPath);
-          downloadFile(res.headers.location, destPath).then(resolve).catch(reject);
+          downloadFile(res.headers.location, destPath)
+            .then(resolve)
+            .catch(reject);
           return;
         }
         res.pipe(file);
@@ -58,8 +64,9 @@ async function downloadFile(url, destPath) {
   });
 }
 
-/** Extract plain text from Notion rich_text array */
-function richTextToString(richText) {
+/** Extract plain text from Notion rich_text array.
+ *  escapeHtml=true: MDX 콘텐츠 용 — &, <, > 를 HTML 엔티티로 치환 */
+function richTextToString(richText, escapeHtml = false) {
   if (!richText || !Array.isArray(richText)) return "";
   return richText.map((t) => t.plain_text ?? "").join("");
 }
@@ -70,14 +77,17 @@ function parseProperties(page) {
 
   const get = (key) => props[key];
 
-  const title = richTextToString(get("title")?.title ?? get("제목")?.title ?? get("Name")?.title ?? []);
+  const title = richTextToString(
+    get("title")?.title ?? get("제목")?.title ?? get("Name")?.title ?? [],
+  );
 
   const category =
     get("카테고리")?.select?.name ??
     (get("카테고리")?.multi_select ?? []).map((s) => s.name).join(", ") ??
     undefined;
 
-  const status = get("상태")?.status?.name ?? get("상태")?.select?.name ?? undefined;
+  const status =
+    get("상태")?.status?.name ?? get("상태")?.select?.name ?? undefined;
   const type = get("타입")?.select?.name ?? undefined;
   // updatedAt can be a date or created_time property
   const updatedAt =
@@ -110,7 +120,8 @@ async function processImages(markdownBody, notionId) {
     const [full, alt, url] = match;
     try {
       const urlObj = new URL(url);
-      const basename = path.basename(urlObj.pathname).split("?")[0] || "image.png";
+      const basename =
+        path.basename(urlObj.pathname).split("?")[0] || "image.png";
       const localPath = path.join(imgDir, basename);
       const publicPath = `/images/${notionId}/${basename}`;
       replacements.push({ full, alt, url, localPath, publicPath });
@@ -123,7 +134,9 @@ async function processImages(markdownBody, notionId) {
     try {
       await downloadFile(url, localPath);
     } catch (err) {
-      console.warn(`  Warning: failed to download image ${url}: ${err.message}`);
+      console.warn(
+        `  Warning: failed to download image ${url}: ${err.message}`,
+      );
     }
   }
 
@@ -209,6 +222,12 @@ async function main() {
     // Convert page to markdown
     const mdBlocks = await n2m.pageToMarkdown(page.id);
     let markdownBody = n2m.toMarkdownString(mdBlocks).parent;
+
+    // 코드 블록 밖의 MDX-breaking < 문자 이스케이프
+    markdownBody = markdownBody.replace(
+      /(```[\s\S]*?```|`[^`]*`)|<(?![a-zA-Z\/!])/g,
+      (m, code) => code ?? "&lt;",
+    );
 
     // Process images
     markdownBody = await processImages(markdownBody, page.id);

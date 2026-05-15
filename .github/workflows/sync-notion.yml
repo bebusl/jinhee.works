@@ -29,14 +29,15 @@ jobs:
           node-version: "20"
           cache: "pnpm"
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install sync dependencies
+        run: pnpm sync:install
 
       - name: Run Notion sync
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-        run: node scripts/sync-notion.mjs
+          NODE_ENV: production
+        run: pnpm sync:post
 
       - name: Commit and push changes
         run: |
@@ -44,5 +45,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add posts/
           [ -d public/images ] && git add public/images/
-          git diff --cached --quiet || git commit -m "chore: sync Notion posts [skip ci]"
-          git push
+          if git diff --cached --quiet; then
+            echo "No changes to commit, skipping push"
+          else
+            git commit -m "chore: sync notion posts"
+            git push
+          fi

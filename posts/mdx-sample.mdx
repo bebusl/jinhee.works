@@ -1,0 +1,294 @@
+---
+title: MDX 렌더링 테스트 — 모든 요소 샘플
+date: "2026-05-07"
+updated_at: "2026-05-07"
+category: "🧪 Test"
+status: 완료
+type: 블로그
+featured: true
+---
+
+> 이 파일은 MDX 렌더링이 잘 되는지 확인하기 위한 종합 샘플입니다.
+
+---
+
+# H1 — 최상위 제목
+
+## H2 — 섹션 제목
+
+### H3 — 서브섹션
+
+#### H4 — 세부 항목
+
+---
+
+## 텍스트 스타일링
+
+일반 단락 텍스트입니다. 문장이 길어질 때 줄바꿈이 자연스럽게 되는지 확인합니다. 한글과 영어가 섞인 경우도 잘 처리되어야 합니다. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+**굵은 텍스트** 와 *기울임 텍스트* 를 함께 쓰면 ***굵고 기울어진 텍스트*** 가 됩니다.
+
+~~취소선 텍스트~~ 는 이렇게 표시됩니다.
+
+인라인 코드는 `const foo = "bar"` 이런 식으로 사용합니다.
+
+---
+
+## 링크
+
+- 외부 링크: [Anthropic](https://www.anthropic.com)
+- 내부 참고: [블로그 홈](/blog)
+- URL 직접: https://github.com
+
+---
+
+## 리스트
+
+### 순서 없는 리스트
+
+- 사과
+- 바나나
+  - 노란 바나나
+  - 초록 바나나
+    - 아직 덜 익은 것
+- 포도
+  - 청포도
+  - 적포도
+
+### 순서 있는 리스트
+
+1. 프로젝트 요구사항 분석
+2. 설계 및 아키텍처 결정
+   1. 데이터베이스 선택
+   2. 프레임워크 선택
+3. 개발 시작
+4. 테스트
+5. 배포
+
+### 태스크 리스트 (GFM)
+
+- [x] MDX 기본 렌더링 확인
+- [x] Frontmatter 파싱
+- [x] GFM 플러그인 적용
+- [ ] Syntax Highlighting 추가
+- [ ] 이미지 최적화
+- [ ] TOC 자동 생성
+
+---
+
+## 인용문 (Blockquote)
+
+> 단순한 인용문입니다.
+
+> **중첩 인용문 예시**
+>
+> 첫 번째 레벨의 인용문입니다.
+>
+> > 두 번째 레벨로 들여쓴 인용문입니다.
+> > 여러 줄도 잘 처리되어야 합니다.
+
+---
+
+## 코드 블록
+
+### JavaScript
+
+```javascript
+// 비동기 함수 예시
+async function fetchPost(slug) {
+  const res = await fetch(`/api/posts/${slug}`);
+  if (!res.ok) throw new Error("Post not found");
+  return res.json();
+}
+
+const post = await fetchPost("mdx-sample");
+console.log(post.title);
+```
+
+### TypeScript
+
+```typescript
+interface Post {
+  slug: string;
+  title: string;
+  date: string;
+  category?: string;
+  featured?: boolean;
+}
+
+function getPostsByCategory(posts: Post[], category: string): Post[] {
+  return posts
+    .filter((p) => p.category === category)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+```
+
+### CSS
+
+```css
+.prose {
+  max-width: 65ch;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: hsl(var(--foreground));
+}
+
+.prose h1,
+.prose h2,
+.prose h3 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose {
+    color: hsl(var(--foreground));
+  }
+}
+```
+
+### Shell
+
+```bash
+# 프로젝트 세팅
+pnpm install
+pnpm dev
+
+# Notion 동기화
+node scripts/sync-notion.mjs
+
+# 빌드
+pnpm build
+pnpm start
+```
+
+### JSON
+
+```json
+{
+  "name": "jinhee.works",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "@notionhq/client": "^2.0.0"
+  }
+}
+```
+
+---
+
+## 테이블
+
+| 컴포넌트       | 파일 위치                        | 역할                        |
+| -------------- | -------------------------------- | --------------------------- |
+| `Toggle`       | `components/mdx/Toggle.tsx`      | 접고 펼치는 콘텐츠 블록     |
+| `Callout`      | `components/mdx/Callout.tsx`     | 강조 박스 (info/warn/error) |
+| `Badge`        | `components/ui/badge.tsx`        | 카테고리 태그 표시          |
+| `MDXRemote`    | `next-mdx-remote/rsc`            | MDX 컴파일 및 렌더링        |
+
+### 정렬 테이블
+
+| 왼쪽 정렬 | 가운데 정렬 | 오른쪽 정렬 |
+| :-------- | :---------: | ----------: |
+| 사과      |    1,200    |       1,200 |
+| 바나나    |     800     |         800 |
+| 포도      |    2,500    |       2,500 |
+| **합계**  |  **4,500**  |   **4,500** |
+
+---
+
+## Callout 컴포넌트
+
+<Callout type="info" icon="ℹ️">
+  **정보** 타입의 콜아웃입니다. 독자에게 알려주고 싶은 정보를 담습니다.
+  인라인 `code`나 **굵은 텍스트**도 잘 렌더링되어야 합니다.
+</Callout>
+
+<Callout type="warning" icon="⚠️">
+  **주의** 타입의 콜아웃입니다. 독자가 주의해야 할 사항을 알립니다.
+</Callout>
+
+<Callout type="error" icon="🚨">
+  **오류** 타입의 콜아웃입니다. 위험하거나 실수하기 쉬운 부분을 강조합니다.
+</Callout>
+
+<Callout type="success" icon="✅">
+  **성공** 타입의 콜아웃입니다. 올바른 사용법이나 완료된 항목을 표시합니다.
+</Callout>
+
+---
+
+## Toggle 컴포넌트
+
+<Toggle title="펼쳐서 내용 확인하기">
+
+토글 내부에 **마크다운**도 잘 작동해야 합니다.
+
+```javascript
+console.log("토글 내부의 코드 블록");
+```
+
+- 리스트도 됩니다
+- 두 번째 항목
+
+</Toggle>
+
+<Toggle title="중첩 내용이 긴 경우">
+
+### 토글 안에 헤딩
+
+긴 설명이 들어갈 수 있습니다. 토글은 문서를 깔끔하게 유지하면서도 필요한 사람만 펼쳐볼 수 있게 해주는 훌륭한 UX 패턴입니다.
+
+| 키  | 값       |
+| --- | -------- |
+| A   | 첫 번째  |
+| B   | 두 번째  |
+| C   | 세 번째  |
+
+</Toggle>
+
+---
+
+## 이미지
+
+아래는 플레이스홀더 이미지 예시입니다:
+
+![샘플 이미지](https://placehold.co/800x400/1a1a1a/ffffff?text=Sample+Image)
+
+---
+
+## 긴 단락 — 타이포그래피 확인
+
+소프트웨어 엔지니어링에서 가장 중요한 덕목 중 하나는 **가독성(readability)** 입니다. 코드는 한 번 작성되지만 수십 번 읽힙니다. 따라서 미래의 자신과 동료를 위해 명확하고 의도가 잘 드러나는 코드를 작성하는 것이 중요합니다.
+
+블로그를 직접 만든다는 것은 단순히 기술을 익히는 것 이상의 의미가 있습니다. 나만의 공간을 직접 설계하고 구현하면서 *내가 원하는 방식으로 생각을 표현*할 수 있는 플랫폼을 갖게 됩니다. 플리커나 미디엄 같은 서비스가 편리하긴 하지만, 결국 그 안에서는 플랫폼이 허용하는 범위 안에서만 자유롭습니다.
+
+> "Tools amplify your talent. The better your tools, and the better you know how to use them, the more productive you can be."
+>
+> — *The Pragmatic Programmer*
+
+Next.js와 MDX를 조합하면 정적 사이트의 성능과 컴포넌트 기반 동적 표현을 동시에 누릴 수 있습니다. `remark-gfm` 덕분에 GitHub에서 쓰던 마크다운 문법을 그대로 가져올 수 있고, `next-mdx-remote`는 빌드 타임에 컴파일하여 런타임 오버헤드를 줄여줍니다.
+
+---
+
+## 마무리
+
+이 샘플 파일은 다음 요소들을 테스트합니다:
+
+1. ✅ 헤딩 레벨 (H1 ~ H4)
+2. ✅ 텍스트 스타일 (굵게, 기울임, 취소선, 인라인 코드)
+3. ✅ 리스트 (순서 있음/없음/중첩/태스크)
+4. ✅ 인용문 (단순/중첩)
+5. ✅ 코드 블록 (JS, TS, CSS, Bash, JSON)
+6. ✅ 테이블 (기본/정렬)
+7. ✅ Callout 커스텀 컴포넌트
+8. ✅ Toggle 커스텀 컴포넌트
+9. ✅ 이미지
+10. ✅ 링크
+11. ✅ 긴 단락 타이포그래피
