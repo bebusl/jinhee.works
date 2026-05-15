@@ -5,6 +5,8 @@ import matter from "gray-matter";
 import { compileMDX } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import { Badge } from "@/components/ui/badge";
+import { Toggle } from "@/components/mdx/Toggle";
+import { Callout } from "@/components/mdx/Callout";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -53,6 +55,7 @@ export default async function Page({ params }: Props) {
           rehypePlugins: [],
         },
       },
+      components: { Toggle, Callout },
     });
     mdxContent = result.content;
   } catch (err) {
@@ -78,7 +81,9 @@ export default async function Page({ params }: Props) {
         {mdxError ? (
           <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
             <p className="font-semibold mb-1">콘텐츠를 불러올 수 없습니다.</p>
-            <pre className="whitespace-pre-wrap text-xs opacity-75">{mdxError}</pre>
+            <pre className="whitespace-pre-wrap text-xs opacity-75">
+              {mdxError}
+            </pre>
           </div>
         ) : (
           mdxContent
