@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import path from "path";
 import fs from "fs";
-import matter from "gray-matter";
 import { compileMDX } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import { Badge } from "@/components/ui/badge";
@@ -27,8 +26,6 @@ export default async function Page({ params }: Props) {
   const { slug: rawSlug } = await params;
   const slug = decodeURIComponent(rawSlug);
 
-  console.log(slug);
-
   let filePath = path.join(POSTS_DIR, `${slug}.md`);
   if (!fs.existsSync(filePath)) {
     filePath = path.join(POSTS_DIR, `${slug}.mdx`);
@@ -39,17 +36,22 @@ export default async function Page({ params }: Props) {
   }
 
   const fileContent = fs.readFileSync(filePath, "utf-8");
-  console.log(fileContent);
-
-  const { content, data } = matter(fileContent);
 
   let mdxContent: React.ReactElement | null = null;
+  let frontmatter: {
+    title?: string;
+    date?: string;
+    updated_at?: string;
+    category?: string;
+    featured?: boolean;
+  } = {};
   let mdxError: string | null = null;
 
   try {
-    const result = await compileMDX({
-      source: content,
+    const result = await compileMDX<typeof frontmatter>({
+      source: fileContent,
       options: {
+        parseFrontmatter: true,
         mdxOptions: {
           remarkPlugins: [remarkGfm],
           rehypePlugins: [],
@@ -58,6 +60,7 @@ export default async function Page({ params }: Props) {
       components: { Toggle, Callout },
     });
     mdxContent = result.content;
+    frontmatter = result.frontmatter;
   } catch (err) {
     mdxError = err instanceof Error ? err.message : String(err);
   }
@@ -66,15 +69,19 @@ export default async function Page({ params }: Props) {
     <div className="max-w-3xl mx-auto">
       <header className="mb-8 pb-8 border-b border-border">
         <h1 className="text-3xl font-bold text-foreground mb-4">
-          {data.title}
+          {frontmatter.title}
         </h1>
         <div className="flex items-center gap-3 flex-wrap text-sm text-muted-foreground">
-          {data.date && <span>{String(data.date).slice(0, 10)}</span>}
-          {data.updated_at && (
-            <span>업데이트: {String(data.updated_at).slice(0, 10)}</span>
+          {frontmatter.date && (
+            <span>{String(frontmatter.date).slice(0, 10)}</span>
           )}
-          {data.category && <Badge variant="secondary">{data.category}</Badge>}
-          {data.featured && <span className="text-yellow-500">⭐</span>}
+          {frontmatter.updated_at && (
+            <span>업데이트: {String(frontmatter.updated_at).slice(0, 10)}</span>
+          )}
+          {frontmatter.category && (
+            <Badge variant="secondary">{frontmatter.category}</Badge>
+          )}
+          {frontmatter.featured && <span className="text-yellow-500">⭐</span>}
         </div>
       </header>
       <article className="prose dark:prose-invert max-w-none">

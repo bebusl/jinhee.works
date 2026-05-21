@@ -3,6 +3,9 @@
  *
  * Usage: node scripts/sync-notion.mjs
  * Env:   NOTION_TOKEN, NOTION_DATABASE_ID
+ *
+ * Mock mode (API 호출 없이 로컬 테스트):
+ *   node scripts/sync-notion.mjs --mock
  */
 
 import { Client } from "@notionhq/client";
@@ -15,9 +18,11 @@ import { fileURLToPath } from "url";
 import https from "node:https";
 import http from "node:http";
 
+const MOCK_MODE = process.argv.includes("--mock");
 const isProd = process.env.NODE_ENV === "production";
 
 console.log("IS PRODUCTION?", isProd);
+if (MOCK_MODE) console.log("MOCK MODE: Notion API 호출을 건너뜁니다.");
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -27,13 +32,186 @@ const IMAGES_DIR = path.join(ROOT, "public", "images");
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
 
-if (!NOTION_TOKEN || !NOTION_DATABASE_ID) {
+if (!MOCK_MODE && (!NOTION_TOKEN || !NOTION_DATABASE_ID)) {
   console.error("Error: NOTION_TOKEN and NOTION_DATABASE_ID must be set");
   process.exit(1);
 }
 
-const notion = new Client({ auth: NOTION_TOKEN });
+const notion = new Client({ auth: NOTION_TOKEN ?? "mock-token-for-dev" });
 const n2m = new NotionToMarkdown({ notionClient: notion });
+
+// Equation 블록 → 코드블록 (remark-math 없이 {} 가 JSX 에러 유발하므로)
+n2m.setCustomTransformer("equation", async (block) => {
+  return `\`\`\`math\n${block.equation.expression}\n\`\`\``;
+});
+
+// Callout 블록 → <Callout> MDX 컴포넌트 (기본 > blockquote 대신)
+n2m.setCustomTransformer("callout", async (block) => {
+  const callout = block.callout;
+  const icon = callout.icon?.type === "emoji" ? callout.icon.emoji : "💡";
+  const text = (callout.rich_text ?? [])
+    .map((t) => {
+      let s = t.plain_text ?? "";
+      if (!s) return "";
+      const leading = s.match(/^\s*/)[0];
+      const trailing = s.match(/\s*$/)[0];
+      let inner = s.trim();
+      if (!inner) return s;
+      if (t.annotations?.code) inner = `\`${inner}\``;
+      if (t.annotations?.bold) inner = `**${inner}**`;
+      if (t.annotations?.italic) inner = `*${inner}*`;
+      if (t.annotations?.strikethrough) inner = `~~${inner}~~`;
+      return leading + inner + trailing;
+    })
+    .join("");
+  return `<Callout icon="${icon}">${text}</Callout>`;
+});
+
+// ─── Mock 설정 ────────────────────────────────────────────────────────────────
+
+const MOCK_PAGE_ID = "mock-page-uuid-0000";
+
+const mockPage = {
+  id: MOCK_PAGE_ID,
+  created_time: "2026-05-01T00:00:00.000Z",
+  last_edited_time: "2026-05-14T00:00:00.000Z",
+  properties: {
+    title: {
+      title: [
+        {
+          type: "text",
+          text: { content: "Mock 테스트 페이지" },
+          plain_text: "Mock 테스트 페이지",
+          annotations: {
+            bold: false,
+            italic: false,
+            strikethrough: false,
+            underline: false,
+            code: false,
+            color: "default",
+          },
+          href: null,
+        },
+      ],
+    },
+    카테고리: { select: { name: "테스트" } },
+    상태: { status: { name: "완료" } },
+    타입: { select: { name: "블로그" } },
+    "블로깅하면 좋아요": { checkbox: false },
+  },
+};
+
+function makeMockBlock(type, typeData, hasChildren = false) {
+  return {
+    object: "block",
+    id: `mock-${type}-std-0000`,
+    parent: { type: "page_id", page_id: MOCK_PAGE_ID },
+    type,
+    created_time: "2026-05-01T00:00:00.000Z",
+    last_edited_time: "2026-05-14T00:00:00.000Z",
+    created_by: { object: "user", id: "mock-user-uuid" },
+    last_edited_by: { object: "user", id: "mock-user-uuid" },
+    has_children: hasChildren,
+    archived: false,
+    in_trash: false,
+    [type]: typeData,
+  };
+}
+
+function mockRt(content, annotations = {}) {
+  return {
+    type: "text",
+    text: { content, link: null },
+    annotations: {
+      bold: false,
+      italic: false,
+      strikethrough: false,
+      underline: false,
+      code: false,
+      color: "default",
+      ...annotations,
+    },
+    plain_text: content,
+    href: null,
+  };
+}
+
+const standardMockBlocks = [
+  makeMockBlock("heading_1", {
+    rich_text: [mockRt("표준 블록 (notion-to-md 기본 처리)")],
+    color: "default",
+    is_toggleable: false,
+  }),
+  makeMockBlock("heading_2", {
+    rich_text: [mockRt("텍스트 블록")],
+    color: "default",
+    is_toggleable: false,
+  }),
+  makeMockBlock("paragraph", {
+    rich_text: [
+      mockRt("일반 단락입니다. "),
+      mockRt("굵게", { bold: true }),
+      mockRt("와 "),
+      mockRt("기울임", { italic: true }),
+      mockRt("도 포함됩니다."),
+    ],
+    color: "default",
+  }),
+  makeMockBlock("bulleted_list_item", {
+    rich_text: [mockRt("불릿 리스트 항목 1")],
+    color: "default",
+  }),
+  makeMockBlock("bulleted_list_item", {
+    rich_text: [mockRt("불릿 리스트 항목 2")],
+    color: "default",
+  }),
+  makeMockBlock("numbered_list_item", {
+    rich_text: [mockRt("번호 리스트 항목 1")],
+    color: "default",
+    number: 1,
+  }),
+  makeMockBlock("numbered_list_item", {
+    rich_text: [mockRt("번호 리스트 항목 2")],
+    color: "default",
+    number: 2,
+  }),
+  makeMockBlock("quote", {
+    rich_text: [mockRt("인용구 텍스트입니다.")],
+    color: "default",
+  }),
+  makeMockBlock("code", {
+    rich_text: [mockRt('console.log("Hello, Notion!");')],
+    language: "javascript",
+    caption: [],
+  }),
+  makeMockBlock("divider", {}),
+  makeMockBlock("heading_2", {
+    rich_text: [mockRt("커스텀 트랜스포머 필요 블록")],
+    color: "default",
+    is_toggleable: false,
+  }),
+];
+
+async function setupMock() {
+  const { ALL_NON_MD_BLOCKS } =
+    await import("../../notion-integration-test/mock-blocks.mjs");
+  const customBlocks = ALL_NON_MD_BLOCKS.map((b) => b.block);
+  const allMockBlocks = [...standardMockBlocks, ...customBlocks];
+
+  notion.blocks.children.list = async ({ block_id }) => {
+    if (block_id === MOCK_PAGE_ID) {
+      return {
+        object: "list",
+        results: allMockBlocks,
+        has_more: false,
+        next_cursor: null,
+      };
+    }
+    // has_children: true인 블록의 자식은 빈 배열로 반환
+    return { object: "list", results: [], has_more: false, next_cursor: null };
+  };
+}
+// 이건 다 쓰고 나면 지우면 됩니당 ~!
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -120,13 +298,18 @@ async function processImages(markdownBody, notionId) {
     const [full, alt, url] = match;
     try {
       const urlObj = new URL(url);
-      const basename =
-        path.basename(urlObj.pathname).split("?")[0] || "image.png";
-      const localPath = path.join(imgDir, basename);
-      const publicPath = `/images/${notionId}/${basename}`;
+      // decodeURIComponent: Notion URL pathname에 %E1%84%8B 등 percent-encoded 한글이 있는 경우
+      // 그대로 파일명으로 쓰면 브라우저가 URL을 한 번 더 디코딩해 실제 파일명과 불일치 발생.
+      // decode 후 저장하고, publicPath도 encodeURIComponent로 안전하게 인코딩한다.
+      const rawBasename =
+        decodeURIComponent(path.basename(urlObj.pathname).split("?")[0]) ||
+        "image.png";
+      const localPath = path.join(imgDir, rawBasename);
+      const publicPath = `/images/${notionId}/${encodeURIComponent(rawBasename)}`;
       replacements.push({ full, alt, url, localPath, publicPath });
     } catch {
       // skip invalid URLs
+      console.log("Invalid URLS");
     }
   }
 
@@ -189,8 +372,16 @@ async function main() {
   console.log("Starting Notion sync...");
   fs.mkdirSync(POSTS_DIR, { recursive: true });
 
-  const pages = await queryDatabase();
-  console.log(`Found ${pages.length} pages in Notion`);
+  let pages;
+  if (MOCK_MODE) {
+    await setupMock();
+    pages = [mockPage];
+  } else {
+    pages = await queryDatabase();
+  }
+  console.log(
+    `Found ${pages.length} pages${MOCK_MODE ? " (mock)" : " in Notion"}`,
+  );
 
   const notionIds = new Set(pages.map((p) => p.id));
   const stats = { created: 0, updated: 0, deleted: 0, skipped: 0 };
@@ -205,8 +396,8 @@ async function main() {
     const slug = titleToSlug(fm.title);
     const filePath = path.join(POSTS_DIR, `${slug}.md`);
 
-    // Check if unchanged
-    if (fs.existsSync(filePath)) {
+    // Check if unchanged (mock 모드에서는 항상 덮어씀)
+    if (!MOCK_MODE && fs.existsSync(filePath)) {
       const existing = matter(fs.readFileSync(filePath, "utf-8"));
       if (existing.data.notion_last_edited === fm.notion_last_edited) {
         console.log(`  Skipped: ${slug}.md (unchanged)`);
@@ -223,11 +414,45 @@ async function main() {
     const mdBlocks = await n2m.pageToMarkdown(page.id);
     let markdownBody = n2m.toMarkdownString(mdBlocks).parent;
 
-    // 코드 블록 밖의 MDX-breaking < 문자 이스케이프
-    markdownBody = markdownBody.replace(
-      /(```[\s\S]*?```|`[^`]*`)|<(?![a-zA-Z\/!])/g,
-      (m, code) => code ?? "&lt;",
-    );
+    // MDX-breaking 패턴 후처리
+    // 1. HTML 주석 제거 (멀티라인 가능하므로 전체 문자열 대상)
+    markdownBody = markdownBody.replace(/<!--[\s\S]*?-->/g, "");
+
+    // 2. 줄 단위로 처리: fence depth를 정확히 추적해 코드 블록 안/밖 구분
+    //    - 4-backtick 블록 안의 3-backtick 은 fence로 보지 않음
+    //    - 코드 블록 밖: { } 이스케이프, < 이스케이프, import/export ESM 방어
+    {
+      let fenceDepth = 0;
+      markdownBody = markdownBody
+        .split("\n")
+        .map((line) => {
+          const fm = line.match(/^(\s*)(```+)(.*)/);
+          if (fm) {
+            const count = fm[2].length;
+            if (fenceDepth === 0) fenceDepth = count;
+            else if (count >= fenceDepth) fenceDepth = 0;
+            return line;
+          }
+          if (fenceDepth > 0) return line;
+
+          // < (JSX 태그가 아닌 것) → &lt;
+          // { } → \{ \}  (JSX 표현식 오인 방지)
+          line = line.replace(
+            /(`[^`]*`|\\[{}])|<(?![a-zA-Z\/])|([{}])/g,
+            (m, prot, brace) => {
+              if (prot !== undefined) return prot;
+              if (brace) return brace === "{" ? "\\{" : "\\}";
+              return "&lt;";
+            },
+          );
+
+          // import/export 로 시작하는 줄은 MDX가 ESM으로 파싱하므로 ZWS로 방어
+          if (/^(import|export)\s/.test(line)) line = "​" + line;
+
+          return line;
+        })
+        .join("\n");
+    }
 
     // Process images
     markdownBody = await processImages(markdownBody, page.id);
@@ -239,7 +464,7 @@ async function main() {
     if (isNew) stats.created++;
     else stats.updated++;
 
-    await delay(350);
+    if (!MOCK_MODE) await delay(350);
   }
 
   // Delete files whose notion_id is no longer in the query results
