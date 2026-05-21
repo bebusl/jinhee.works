@@ -45,7 +45,7 @@ export default function BlogTab({ posts }: Props) {
       </div>
 
       {/* Posts grid */}
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {filtered.length === 0 ? (
           <div className="py-20 text-center">
             <p className="text-muted-foreground text-lg">
@@ -72,7 +72,7 @@ function PostCard({ post, index }: { post: PostMeta; index: number }) {
       }`}
     >
       <div
-        className={`aspect-4/3 overflow-hidden border-foreground ${index % 2 === 0 ? "md:border-r-8" : "md:col-start-3 md:border-l-8"}`}
+        className={`overflow-hidden border-foreground ${index % 2 === 0 ? "md:border-r-8" : "md:col-start-3 md:border-l-8"}`}
       >
         <img
           src={post.thumbnail ?? "/placeholder-post.avif"}

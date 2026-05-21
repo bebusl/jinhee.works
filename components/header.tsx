@@ -1,7 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+// import { usePathname } from "next/navigation";
 import { Moon, Sun } from "lucide-react";
 
 interface HeaderProps {
@@ -10,16 +8,16 @@ interface HeaderProps {
 }
 
 export default function Header({ isDark, toggleTheme }: HeaderProps) {
-  const pathname = usePathname();
+  // const pathname = usePathname();
 
-  const tabs = [
-    { id: "blog", label: "블로그", path: "/blog" },
-    { id: "resume", label: "이력서", path: "/resume" },
-    // { id: "projects", label: "미니프로젝트", path: "/projects" },
-  ];
+  // const tabs = [
+  //   { id: "blog", label: "블로그", path: "/blog" },
+  //   { id: "resume", label: "이력서", path: "/resume" },
+  //   { id: "projects", label: "미니프로젝트", path: "/projects" },
+  // ];
 
-  const isActive = (path: string) =>
-    path === "/" ? pathname === "/" : pathname.startsWith(path);
+  // const isActive = (path: string) =>
+  //   path === "/" ? pathname === "/" : pathname.startsWith(path);
 
   return (
     <header className="border-b-8 border-foreground bg-background relative">
@@ -27,7 +25,7 @@ export default function Header({ isDark, toggleTheme }: HeaderProps) {
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-[2rem] font-semibold leading-none mb-2 tracking-tighter">
-              JINHEE.WORKS
+              <Link href="/">JINHEE.WORKS</Link>
             </h1>
           </div>
           <button
@@ -40,7 +38,7 @@ export default function Header({ isDark, toggleTheme }: HeaderProps) {
         </div>
 
         <div className="flex items-center justify-between mb-8">
-          <nav className="flex gap-6">
+          {/* <nav className="flex gap-6">
             {tabs.map((tab) => {
               const active = isActive(tab.path);
               return (
@@ -58,7 +56,7 @@ export default function Header({ isDark, toggleTheme }: HeaderProps) {
                 </Link>
               );
             })}
-          </nav>
+          </nav> */}
         </div>
       </div>
     </header>
