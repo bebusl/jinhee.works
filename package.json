@@ -8,7 +8,7 @@
     "lint": "eslint .",
     "start": "next start",
     "sync:install": "pnpm -C scripts install",
-    "sync:post": "node --env-file=.env scripts/sync-notion.mjs",
+    "sync:post": "node scripts/sync-notion.mjs",
     "sync:mock": "node --env-file=.env scripts/sync-notion.mjs --mock"
   },
   "dependencies": {
