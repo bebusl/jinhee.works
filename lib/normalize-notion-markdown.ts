@@ -72,6 +72,10 @@ export function normalizeNotionMarkdown(
     (_match, attributes: string) => fallbackLink(attributes, "Notion 첨부 파일"),
   );
 
+  // Notion occasionally emits HTML line breaks inside rich text. MDX requires
+  // JSX void elements to be explicitly self-closing.
+  markdown = markdown.replace(/<br\s*\/?\s*>/gi, "<br />");
+
   markdown = markdown.replace(
     /<unknown\b([^>]*)\/>/gi,
     (_match, attributes: string) => {

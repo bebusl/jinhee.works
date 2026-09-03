@@ -27,3 +27,9 @@ test("keeps an explicit warning for incomplete Markdown responses", () => {
   assert.match(result.markdown, /일부 블록을 생략했습니다/);
   assert.match(result.markdown, /2개/);
 });
+
+test("makes Notion HTML line breaks valid MDX", () => {
+  const result = normalizeNotionMarkdown("강조된 문장<br>다음 줄");
+
+  assert.equal(result.markdown, "강조된 문장<br />다음 줄");
+});
