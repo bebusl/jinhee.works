@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Toggle } from "@/components/mdx/Toggle";
 import { Callout } from "@/components/mdx/Callout";
 import { getPost } from "@/lib/posts";
+import { normalizeNotionMarkdown } from "@/lib/normalize-notion-markdown";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -16,13 +17,17 @@ export default async function Page({ params }: Props) {
 
   const post = await getPost(slug);
   if (!post) notFound();
+  const normalized = normalizeNotionMarkdown(post.markdown, {
+    truncated: post.truncated,
+    unknownBlockIds: post.unknownBlockIds,
+  });
 
   let mdxContent: React.ReactElement | null = null;
   let mdxError: string | null = null;
 
   try {
     const result = await compileMDX({
-      source: post.markdown,
+      source: normalized.markdown,
       options: {
         parseFrontmatter: false,
         mdxOptions: {
