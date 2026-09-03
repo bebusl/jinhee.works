@@ -1,0 +1,16 @@
+[Unit]
+Description=jinhee.works Next.js application
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/srv/jinhee.works
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/jinhee.works.env
+ExecStart=/usr/bin/env pnpm start
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
