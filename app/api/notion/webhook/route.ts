@@ -6,6 +6,7 @@ import {
   verifyNotionWebhookSignature,
   type NotionWebhookEvent,
 } from "@/lib/notion-webhook";
+import { syncNotionAssets } from "@/lib/notion-assets";
 
 export async function POST(req: Request) {
   const rawBody = await req.text();
@@ -38,7 +39,9 @@ export async function POST(req: Request) {
     revalidateTag(notionCacheTags.post(pageId), { expire: 0 });
 
     try {
-      indexInvalidated ||= await isPublishedBlogPost(pageId);
+      const isPublished = await isPublishedBlogPost(pageId);
+      indexInvalidated ||= isPublished;
+      if (isPublished) await syncNotionAssets(pageId);
     } catch {
       // A deleted or inaccessible page can no longer be queried. Revalidate
       // the list so it is removed from the next rendered index.

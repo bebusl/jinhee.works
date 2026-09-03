@@ -227,6 +227,21 @@ export async function getPostMarkdown(pageId: string): Promise<NotionMarkdownRes
   });
 }
 
+export async function getPostMarkdownUncached(
+  pageId: string,
+): Promise<NotionMarkdownResponse> {
+  const response = await fetch(`${NOTION_API_BASE_URL}/pages/${pageId}/markdown`, {
+    headers: notionHeaders(),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Notion Markdown 조회 실패 (${response.status})`);
+  }
+
+  return response.json() as Promise<NotionMarkdownResponse>;
+}
+
 export async function getPost(slug: string): Promise<NotionPost | null> {
   const post = await getPostBySlug(slug);
   if (!post) return null;
