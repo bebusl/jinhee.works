@@ -6,10 +6,7 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "eslint .",
-    "start": "next start",
-    "sync:install": "pnpm -C scripts install",
-    "sync:post": "node scripts/sync-notion.mjs",
-    "sync:mock": "node --env-file=.env scripts/sync-notion.mjs --mock"
+    "start": "next start"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
