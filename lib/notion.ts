@@ -154,6 +154,26 @@ function toPostMeta(page: NotionPage): PostMeta {
   };
 }
 
+function isPublishedBlogPage(page: NotionPage) {
+  return (
+    page.properties["타입"]?.select?.name === "블로그" &&
+    page.properties["상태"]?.status?.name === "완료"
+  );
+}
+
+async function getPageWithoutCache(pageId: string) {
+  const response = await fetch(`${NOTION_API_BASE_URL}/pages/${pageId}`, {
+    headers: notionHeaders(),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Notion 페이지 조회 실패 (${response.status})`);
+  }
+
+  return response.json() as Promise<NotionPage>;
+}
+
 async function queryBlogPages() {
   const pages: NotionPage[] = [];
   let cursor: string | null = null;
@@ -218,6 +238,11 @@ export async function getPost(slug: string): Promise<NotionPost | null> {
     truncated: markdown.truncated,
     unknownBlockIds: markdown.unknown_block_ids,
   };
+}
+
+/** Returns false for pages that are not published blog posts. */
+export async function isPublishedBlogPost(pageId: string) {
+  return isPublishedBlogPage(await getPageWithoutCache(pageId));
 }
 
 export const notionCacheTags = {
