@@ -1,7 +1,11 @@
 node_modules/*
 scripts/node_modules/
+.env
+.env.*
+!.env.example
 
 .next
 .idea
+tsconfig.tsbuildinfo
 
 posts/local/*
